@@ -227,6 +227,25 @@ pub fn new(commit: &str, pr: u16) -> DynResult<()> {
     ]);
     md.write_all(current_list.as_bytes())?;
     info!("Finished writing report!");
+    let token = env::var("GH_TOKEN")?;
+    cmderr!("git", "add", ".");
+    cmderr!(
+        "git",
+        "commit",
+        "-m",
+        format!("Added result for skytable/skytable#{}", pr),
+        "-m",
+        format!("Triggered by {trigger_commit}", trigger_commit = commit)
+    );
+    cmderr!(
+        "git",
+        "push",
+        format!(
+            "https://glydr:{token}@github.com/skytable/skytable.git",
+            token = token
+        ),
+        "--all"
+    );
     Ok(())
 }
 

@@ -13,6 +13,16 @@ macro_rules! cmd {
     }};
 }
 
+macro_rules! cmderr {
+    ($program:expr, $($arg:expr),*) => {
+        let mut cmd = cmd!($program, $($arg),*);
+        let output = cmd.output()?;
+        if !output.status.success() {
+            err!("Fatal error in child process");
+        }
+    };
+}
+
 macro_rules! hspawnerr {
     ($program:expr, $($arg:expr),*) => {
         let mut cmd = cmd!($program, $($arg),*);
