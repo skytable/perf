@@ -1,0 +1,23 @@
+on:
+  push:
+    branches:
+      - next
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  bench:
+    name: Update results
+    runs-on: self-hosted
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Update Rust
+        run: rustup update stable
+      - name: Build
+        run: cargo build --release
+      - name: Run benchmarks
+        run: |
+          chmod +x bench.sh
+          bash bench.sh
