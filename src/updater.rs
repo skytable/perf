@@ -2,6 +2,7 @@ use crate::bencher::Report;
 use crate::util;
 use crate::DynResult;
 use serde::{Deserialize, Serialize};
+use std::env;
 pub type SkyBenchReport = Vec<SkyBenchReportSection>;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -36,7 +37,25 @@ pub fn update_release(release: &str) -> DynResult<()> {
     let results: Report = Report::from_stdout(self::raw_result(release)?)?;
     let result_update = ReportItem::new(release.to_owned(), results);
     let result_update_str = serde_json::to_string_pretty(&result_update)?;
-    util::create_and_write_to_file(FILE_LATEST_RELEASE, result_update_str.as_bytes())
+    util::create_and_write_to_file(FILE_LATEST_RELEASE, result_update_str.as_bytes())?;
+    let token = env::var("GH_TOKEN")?;
+    cmderr!("git", "add", ".");
+    cmderr!(
+        "git",
+        "commit",
+        "-m",
+        format!("Update results for release {}", release)
+    );
+    cmderr!(
+        "git",
+        "push",
+        format!(
+            "https://glydr:{token}@github.com/skytable/skytable.git",
+            token = token
+        ),
+        "--all"
+    );
+    Ok(())
 }
 
 /// Updates the next preset result to the current `HEAD` on `skytable/skytable`
@@ -46,7 +65,20 @@ pub fn update_next() -> DynResult<()> {
     let results: Report = Report::from_stdout(self::raw_result(BRANCH_LATEST)?)?;
     let result_update = ReportItem::new(util::get_latest_commit()?, results);
     let result_update_str = serde_json::to_string_pretty(&result_update)?;
-    util::create_and_write_to_file(FILE_NEXT, result_update_str.as_bytes())
+    util::create_and_write_to_file(FILE_NEXT, result_update_str.as_bytes())?;
+    let token = env::var("GH_TOKEN")?;
+    cmderr!("git", "add", ".");
+    cmderr!("git", "commit", "-m", format!("Update results for next"));
+    cmderr!(
+        "git",
+        "push",
+        format!(
+            "https://glydr:{token}@github.com/skytable/skytable.git",
+            token = token
+        ),
+        "--all"
+    );
+    Ok(())
 }
 
 /// This returns the raw output from `sky-bench` for the provided `branch`
