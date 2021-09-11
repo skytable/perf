@@ -80,7 +80,10 @@ impl Comparison {
 }
 
 /// Create a new bench for the provided commit and PR
-pub fn new(commit: &str, pr: u16) -> DynResult<()> {
+pub async fn new(commit: &str, pr: u16) -> DynResult<()> {
+    let crab = octocrab::Octocrab::builder()
+        .personal_token(env::var("GH_TOKEN")?)
+        .build()?;
     info!("New bench for commit: `{}` in PR#{}", commit, pr);
 
     // just use the CLI data command; no need for fancy libs
@@ -97,10 +100,7 @@ pub fn new(commit: &str, pr: u16) -> DynResult<()> {
     let json_filename = format!("./results/result-{}.json", datestr);
     let report_filename = format!("./reports/result-{}.md", datestr);
     // set var for the workflow to add the comment
-    env::set_var(
-        "FILE_URL",
-        format!("{}/{}", PERF_BASE_URL, &report_filename[2..]),
-    );
+    let url_to_report = format!("{}/{}", PERF_BASE_URL, &report_filename[2..]);
 
     // get the base output from sky-bench
     let result = updater::raw_result(commit)?;
@@ -231,6 +231,17 @@ pub fn new(commit: &str, pr: u16) -> DynResult<()> {
         format!("Added result for skytable/skytable#{} [skip ci]", pr),
         format!("Triggered by {trigger_commit}", trigger_commit = commit)
     );
+    info!("Adding comment");
+    crab.issues("skytable", "skytable")
+        .create_comment(
+            pr.into(),
+            format!(
+                "The benchmark has completed. Review [the benchmark here]({url})",
+                url = url_to_report
+            ),
+        )
+        .await?;
+    info!("Added comment");
     Ok(())
 }
 

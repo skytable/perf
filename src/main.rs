@@ -23,22 +23,24 @@ fn main() {
     runtime();
 }
 
-fn runtime() {
+#[tokio::main]
+async fn runtime() {
     let what_to_do = Action::from_env();
-    let ret = || -> DynResult<()> {
+    let ret = async {
         cmderr!("git", "config", "--global", "pull.rebase", "true");
         fs::create_dir_all("preset")?;
         fs::create_dir_all("results")?;
         fs::create_dir_all("reports")?;
         match what_to_do {
-            Action::NewBench(bench) => bencher::new(bench.commit(), bench.pull())?,
+            Action::NewBench(bench) => bencher::new(bench.commit(), bench.pull()).await?,
             Action::UpdateNext => updater::update_next()?,
             Action::UpdateRelease(release) => updater::update_release(&release)?,
         }
         Ok(())
     };
     let errored;
-    if let Err(e) = ret() {
+    let ret: DynResult<()> = ret.await;
+    if let Err(e) = ret {
         log::error!("The task failed with: {}", e);
         errored = true;
     } else {
