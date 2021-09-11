@@ -39,13 +39,16 @@ pub fn update_release(release: &str) -> DynResult<()> {
     let result_update_str = serde_json::to_string_pretty(&result_update)?;
     util::create_and_write_to_file(FILE_LATEST_RELEASE, result_update_str.as_bytes())?;
     let token = env::var("GH_TOKEN")?;
+    trace!("Adding files ...");
     cmderr!("git", "add", ".");
+    trace!("Committing files ...");
     cmderr!(
         "git",
         "commit",
         "-m",
         format!("Update results for release {}", release)
     );
+    trace!("Publishing results ...");
     cmderr!(
         "git",
         "push",
@@ -67,8 +70,11 @@ pub fn update_next() -> DynResult<()> {
     let result_update_str = serde_json::to_string_pretty(&result_update)?;
     util::create_and_write_to_file(FILE_NEXT, result_update_str.as_bytes())?;
     let token = env::var("GH_TOKEN")?;
+    trace!("Adding files ...");
     cmderr!("git", "add", ".");
-    cmderr!("git", "commit", "-m", format!("Update results for next"));
+    trace!("Committing files ...");
+    cmderr!("git", "commit", "-m", "Update results for next");
+    trace!("Publishing results ...");
     cmderr!(
         "git",
         "push",

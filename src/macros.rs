@@ -18,6 +18,7 @@ macro_rules! cmderr {
         let mut cmd = cmd!($program, $($arg),*);
         let output = cmd.output()?;
         if !output.status.success() {
+            log::error!("Child failed with: {}", String::from_utf8_lossy(&output.stderr));
             err!("Fatal error in child process");
         }
     };

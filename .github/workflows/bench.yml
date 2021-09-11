@@ -1,3 +1,5 @@
+name: Update results
+
 on:
   push:
     branches:
@@ -22,6 +24,7 @@ jobs:
       - name: Run benchmarks
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          SKYREPORT_LOG: trace
         run: |
           git config --global user.name Glydr
           git config --global user.email "${{ secrets.GLYDR_MAIL }}"

@@ -84,7 +84,7 @@ pub fn run_benchmark_and_get_stdout() -> DynResult<String> {
     if !stderr.is_empty() {
         return rerr!(format!(
             "sky-bench failed with error: `{}`",
-            String::from_utf8_lossy(&stderr)
+            String::from_utf8_lossy(stderr)
         ));
     }
     if !output.status.success() {
