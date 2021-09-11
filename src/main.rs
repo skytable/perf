@@ -26,6 +26,7 @@ fn main() {
 fn runtime() {
     let what_to_do = Action::from_env();
     let ret = || -> DynResult<()> {
+        cmderr!("git", "config", "--global", "pull.rebase", "true");
         fs::create_dir_all("preset")?;
         fs::create_dir_all("results")?;
         fs::create_dir_all("reports")?;
