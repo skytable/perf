@@ -228,7 +228,7 @@ pub fn new(commit: &str, pr: u16) -> DynResult<()> {
     md.write_all(current_list.as_bytes())?;
     info!("Finished writing report!");
     commit!(
-        format!("Added result for skytable/skytable#{}", pr),
+        format!("Added result for skytable/skytable#{} [skip ci]", pr),
         format!("Triggered by {trigger_commit}", trigger_commit = commit)
     );
     Ok(())
