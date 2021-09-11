@@ -55,3 +55,30 @@ macro_rules! cd {
         std::env::set_current_dir($chdir)?
     };
 }
+
+macro_rules! commit {
+    ($($msg:expr),*) => {
+        let token = env::var("GH_TOKEN")?;
+        trace!("Adding files ...");
+        cmderr!("git", "add", ".");
+        trace!("Committing files ...");
+        cmderr!(
+            "git",
+            "commit",
+            $(
+                "-m",
+                $msg
+            ),*
+        );
+        trace!("Publishing results ...");
+        cmderr!(
+            "git",
+            "push",
+            format!(
+                "https://glydr:{token}@github.com/skytable/perf.git",
+                token = token
+            ),
+            "--all"
+        );
+    };
+}
