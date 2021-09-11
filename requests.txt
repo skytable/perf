@@ -4,3 +4,4 @@ target/release/skyreport update nexttarget/release/skyreport update next
 
 target/release/skyreport update next
 target/release/skyreport bench 4d2c7eaebf6a3921ac224952fed883b6bea37864 222
+target/release/skyreport bench 4d2c7eaebf6a3921ac224952fed883b6bea37864 222
