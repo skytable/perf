@@ -2,6 +2,8 @@ name: Update results
 
 on:
   push:
+    paths:
+      - "requests.txt"
     branches:
       - next
 
