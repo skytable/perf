@@ -21,6 +21,7 @@ macro_rules! concat_string {
 const COMMIT_BASE_URL: &str = "https://github.com/skytable/skytable/commit";
 const PR_BASE_URL: &str = "https://github.com/skytable/skytable/pull";
 const PERF_BASE_URL: &str = "https://github.com/skytable/perf/tree/next/reports/";
+const FILE_URL: &str = "https://github.com/skytable/perf/blob/next/reports";
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 /// A report, which is a structure for JSON of the following form:
@@ -94,13 +95,14 @@ pub async fn new(commit: &str, pr: u16) -> DynResult<()> {
             String::from_utf8_lossy(&date.stderr)
         ));
     }
-    let datestr = String::from_utf8_lossy(&date.stdout);
+    let datestr = String::from_utf8_lossy(&date.stdout).to_string();
+    let datestr = datestr.trim();
 
     // we have two files: the raw report; and the markdown report
     let json_filename = format!("./results/result-{}.json", datestr);
     let report_filename = format!("./reports/result-{}.md", datestr);
     // set var for the workflow to add the comment
-    let url_to_report = format!("{}/{}", PERF_BASE_URL, &report_filename[2..]);
+    let url_to_report = format!("{}/{}", FILE_URL, &report_filename[2..]);
 
     // get the base output from sky-bench
     let result = updater::raw_result(commit)?;
@@ -236,7 +238,7 @@ pub async fn new(commit: &str, pr: u16) -> DynResult<()> {
         .create_comment(
             pr.into(),
             format!(
-                "The benchmark has completed. Review [the benchmark here]({url})",
+                "The benchmark has completed. Review the benchmark here: {url}",
                 url = url_to_report
             ),
         )
