@@ -1,3 +1,27 @@
+/*
+ * Created on Thu Sep 14 2021
+ *
+ * This file is a part of Skytable's "Perf" tool
+ * Skytable's performance tool is used to analyze the performance of the
+ * Skytable database.
+ *
+ * Copyright (c) 2021, Sayan Nandan <ohsayan@outlook.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+*/
+
 use crate::updater;
 use crate::updater::ReportItem;
 use crate::updater::SkyBenchReport;
@@ -5,6 +29,7 @@ use crate::updater::FILE_LATEST_RELEASE;
 use crate::updater::FILE_NEXT;
 use crate::util;
 use crate::DynResult;
+use octocrab::{models::repos::Object, params::repos::Reference, Octocrab};
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
@@ -81,10 +106,19 @@ impl Comparison {
 
 /// Create a new bench for the provided commit and PR
 pub async fn new(commit: &str, pr: u16) -> DynResult<()> {
-    let crab = octocrab::Octocrab::builder()
+    let crab = Octocrab::builder()
         .personal_token(env::var("GH_TOKEN")?)
         .build()?;
     info!("New bench for commit: `{}` in PR#{}", commit, pr);
+    let repo_current_head = match crab
+        .repos("skytable", "skytable")
+        .get_ref(&Reference::Branch("next".to_owned()))
+        .await?
+        .object
+    {
+        Object::Commit { sha, .. } => sha,
+        _ => return rerr!("Bad return for current SHA"),
+    };
 
     // just use the CLI data command; no need for fancy libs
     let date = cmd!("date", "+%d%m%Y-%H%M%S").output()?;
@@ -126,6 +160,13 @@ pub async fn new(commit: &str, pr: u16) -> DynResult<()> {
     let last_release_report: ReportItem = serde_json::from_str(&last_release_report)?;
     let last_head_report = fs::read_to_string(FILE_NEXT)?;
     let last_head_report: ReportItem = serde_json::from_str(&last_head_report)?;
+
+    if last_head_report.commit != repo_current_head {
+        // current bench is not on the latest commit
+        info!("Current benched commit is not the same as the ref from `next`. Updating benches for `next` first ...");
+        updater::update_next()?;
+        info!("Finished updating benches for `next`");
+    }
 
     // compare against next
     let next_delta_get = delta(current_report.get, last_head_report.report.get);
