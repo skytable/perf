@@ -1,8 +1,8 @@
 {
-  "commit": "a41fd7fa7f97874eb5b26720a8cc5d2dc62378c8",
+  "commit": "ee78f9b1cec84735b75282e72ec4f7043b02bd31",
   "report": {
-    "get": 400770.22,
-    "set": 397276.1,
-    "update": 383270.28
+    "get": 392399.44,
+    "set": 379435.8,
+    "update": 370401.2
   }
 }
