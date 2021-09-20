@@ -25,3 +25,4 @@ target/release/skyreport update next
 target/release/skyreport update next
 target/release/skyreport update next
 target/release/skyreport update next
+target/release/skyreport update next
