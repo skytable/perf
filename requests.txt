@@ -40,3 +40,4 @@ target/release/skyreport update release v0.7.3-alpha.3
 target/release/skyreport update release v0.7.3-alpha.3
 target/release/skyreport update release v0.7.3-alpha.3
 target/release/skyreport update release v0.7.3-alpha.3
+target/release/skyreport bench 9f926e228fff5a765e8680a57bb2434b529d3986 238
