@@ -27,6 +27,7 @@ use crate::util;
 use crate::DynResult;
 use serde::{Deserialize, Serialize};
 use std::env;
+use std::fs;
 pub type SkyBenchReport = Vec<SkyBenchReportSection>;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -96,5 +97,8 @@ pub fn raw_result(branch: &str) -> DynResult<String> {
     info!("Switching to the base directory ...");
     // now switch to the original dir
     cd!(curdir);
+    // clean up after build is over ($PWD/skytable)
+    info!("Removing temporary build files/directories ...");
+    fs::remove_dir_all("skytable")?;
     Ok(benchret)
 }

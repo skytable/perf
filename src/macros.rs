@@ -67,7 +67,7 @@ macro_rules! sleep {
 
 macro_rules! rerr {
     ($e:expr) => {
-        Err($e.into());
+        Err($e.into())
     };
 }
 
