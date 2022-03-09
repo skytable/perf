@@ -24,8 +24,8 @@
 
 macro_rules! err {
     ($e:expr) => {{
-        log::error!("{}", $e);
-        std::process::exit(0x10);
+        ::log::error!("{}", $e);
+        std::process::exit(0x01);
     }};
 }
 
@@ -42,7 +42,7 @@ macro_rules! cmderr {
         let mut cmd = cmd!($program, $($arg),*);
         let output = cmd.output()?;
         if !output.status.success() {
-            log::error!("Child failed with: {}", String::from_utf8_lossy(&output.stderr));
+            ::log::error!("Child failed with: {}", String::from_utf8_lossy(&output.stderr));
             err!("Fatal error in child process");
         }
     };
@@ -101,7 +101,9 @@ macro_rules! commit {
             "git",
             "push",
             format!(
-                "https://glydr:{token}@github.com/skytable/perf.git",
+                "https://glydr:{token}@github.com/{org}/{repo}",
+                org = util::ORG_NAME,
+                repo = util::REPO_PERF,
                 token = token
             ),
             "--all"

@@ -91,9 +91,14 @@ pub fn raw_result(branch: &str) -> DynResult<String> {
     // build. this will switch to target/release
     util::build()?;
     // start the server
-    util::start_server_in_background()?;
+    let mut child = util::start_server_in_background()?;
     // run the bench
     let benchret = util::run_benchmark_and_get_stdout()?;
+    info!("Killing server ...");
+    // now kill server
+    if let Err(e) = child.kill() {
+        error!("Failed to kill server: {}", e);
+    };
     info!("Switching to the base directory ...");
     // now switch to the original dir
     cd!(curdir);

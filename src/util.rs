@@ -25,11 +25,15 @@
 use std::env;
 use std::fs;
 use std::io::Write;
+use std::process::Child;
 
 pub type DynResult<T> = Result<T, Box<dyn std::error::Error>>;
-const REPO: &str = "https://github.com/skytable/skytable.git";
-const RELEASE_DIR: &str = "target/release";
-const VAR_LATEST_COMMIT: &str = "LATEST_COMMIT";
+pub const REPO_URL: &str = "https://github.com/skytable/skytable.git";
+pub const ORG_NAME: &str = "skytable";
+pub const REPO_NAME: &str = "skytable";
+pub const REPO_PERF: &str = "perf.git";
+pub const RELEASE_DIR: &str = "target/release";
+pub const VAR_LATEST_COMMIT: &str = "LATEST_COMMIT";
 
 pub fn get_latest_commit() -> DynResult<String> {
     Ok(env::var(VAR_LATEST_COMMIT).map(|v| v.to_string().replace('"', ""))?)
@@ -39,9 +43,9 @@ pub fn get_latest_commit() -> DynResult<String> {
 /// and checkout the branch, returning errors if any do occur
 pub fn clone_and_checkout(branch: &str) -> DynResult<()> {
     info!("Cloning repo ...");
-    hspawnerr!("git", "clone", REPO);
+    hspawnerr!("git", "clone", REPO_URL);
     info!("Switching to repo directory ...");
-    env::set_current_dir("skytable")?;
+    env::set_current_dir(REPO_NAME)?;
     info!("Checking out branch `{}`", branch);
     hspawnerr!("git", "checkout", branch);
     // now set the latest commit
@@ -84,18 +88,13 @@ pub fn build() -> DynResult<()> {
 /// This will start the server as a child process (sharing same stdout/stderr)
 ///
 /// **Important note:** This function expects to be in the `target/release` directory
-pub fn start_server_in_background() -> DynResult<()> {
+pub fn start_server_in_background() -> DynResult<Child> {
     info!("Starting server in background");
     let child = cmd!("./skyd", "--noart").spawn()?;
     info!("Sleeping to wait for server to start up");
     sleep!(10);
-    // now set global process ID
-    unsafe {
-        // we know this is single threaded, so we're good
-        crate::SERVER_CHILD = Some(child);
-    }
     info!("Finished sleeping. Returning control ...");
-    Ok(())
+    Ok(child)
 }
 
 /// This will run the benchmark with the defaults for `skyreport` and return the stdout
@@ -128,13 +127,5 @@ pub fn create_and_write_to_file(fname: &str, body: &[u8]) -> DynResult<()> {
     let mut file = fs::File::create(fname)?;
     trace!("Writing to file ...");
     file.write_all(body)?;
-    Ok(())
-}
-
-pub fn clear_source_dir() -> DynResult<()> {
-    info!("Removing the generated files ...");
-    // remove the "${PWD}/skytable" directory
-    fs::remove_dir_all("skytable")?;
-    info!("Removed source files and finished getting bench output. Returning control ...");
     Ok(())
 }
