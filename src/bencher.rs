@@ -104,11 +104,7 @@ impl Comparison {
     }
 }
 
-/// Create a new bench for the provided commit and PR
-pub async fn new(commit: &str, pr: u16) -> DynResult<()> {
-    let crab = Octocrab::builder()
-        .personal_token(env::var("GH_TOKEN")?)
-        .build()?;
+async fn bench_inner(crab: &mut Octocrab, commit: &str, pr: u16) -> DynResult<()> {
     info!("New bench for commit: `{}` in PR#{}", commit, pr);
     let repo_current_head = match crab
         .repos("skytable", "skytable")
@@ -288,6 +284,29 @@ pub async fn new(commit: &str, pr: u16) -> DynResult<()> {
         )
         .await?;
     info!("Added comment");
+    Ok(())
+}
+
+/// Create a new bench for the provided commit and PR
+pub async fn new(commit: &str, pr: u16) -> DynResult<()> {
+    let mut crab = Octocrab::builder()
+        .personal_token(env::var("GH_TOKEN")?)
+        .build()?;
+    if let Err(e) = bench_inner(&mut crab, commit, pr).await {
+        let buildid = env::var(util::VAR_ACTION_RUN_ID).unwrap();
+        crab.issues(util::ORG_NAME, util::REPO_NAME)
+            .create_comment(
+                pr.into(),
+                format!(
+                    "The benchmark build failed. Please review [the logs here](https://github.com/{org}/{repo}/runs/{run}?check_suite_focus=true)",
+                    org=util::ORG_NAME,
+                    repo=util::REPO_PERF,
+                    run=buildid
+                ),
+            )
+            .await?;
+        return Err(e);
+    }
     Ok(())
 }
 

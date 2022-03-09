@@ -34,6 +34,7 @@ pub const REPO_NAME: &str = "skytable";
 pub const REPO_PERF: &str = "perf.git";
 pub const RELEASE_DIR: &str = "target/release";
 pub const VAR_LATEST_COMMIT: &str = "LATEST_COMMIT";
+pub const VAR_ACTION_RUN_ID: &str = "GITHUB_RUN_ID";
 
 pub fn get_latest_commit() -> DynResult<String> {
     Ok(env::var(VAR_LATEST_COMMIT).map(|v| v.to_string().replace('"', ""))?)
